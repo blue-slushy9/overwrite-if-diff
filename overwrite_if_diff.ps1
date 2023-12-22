@@ -8,22 +8,23 @@ $dictionary1 = [Ordered]@{}
 
 # Create your second dictionary, for the destination drive, that will store
 # your checksum values for your second drive;
-$dictionary2 = [Ordered]@{}
+#$dictionary2 = [Ordered]@{}
 
 function calc-chksums($path) {
   Get-ChildItem $path -Recurse | ForEach-Object {
     if ($_.PSIsContainer) {  # If it's a directory
-      calc-chksums $_.FullName  # Recursively call the function
-    } else {
+      if "$($_.FullName[0])" != ".") {
+        calc-chksums $_.FullName  # Recursively call the function
+      } else {
       # The key will be the full filepath of the file;
       #$dictionary1.Add(key = $($_.FullName))
 
-      hash = (Get-FileHash -Path $($_.FullName) [-Algorithm MD5])
+        $hash = (Get-FileHash -Path $($_.FullName) -Algorithm MD5)
 
-      # The value will be the MD5 checksum for the file;
-      $dictionary1.Add("$_.FullName", "$hash")
-      
-    }
+        # The value will be the MD5 checksum for the file;
+        $dictionary1.Add("$_.FullName", "$hash")
+      }
+    } 
   }
 }
 
