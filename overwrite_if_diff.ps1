@@ -10,19 +10,28 @@ $dictionary1 = [Ordered]@{}
 # your checksum values for your second drive;
 #$dictionary2 = [Ordered]@{}
 
-function calc-chksums($path) {
+function calc-chksums($path, [ref]$dictionary1) {
   Get-ChildItem $path -Recurse | ForEach-Object {
     if ($_.PSIsContainer) {  # If it's a directory
-      if "$($_.FullName[0])" != ".") {
-        calc-chksums $_.FullName  # Recursively call the function
-      } else {
+      if ("$($_.FullName[0])" -ne ".") { # If the name of the directory does not begin with a "."
+        calc-chksums $_.FullName  # Recursively call the function on the subdirectory
+      } else { # Else, if it's not a directory....
+      
       # The key will be the full filepath of the file;
       #$dictionary1.Add(key = $($_.FullName))
 
+        # Calculate the MD5 hash of the file
         $hash = (Get-FileHash -Path $($_.FullName) -Algorithm MD5)
 
-        # The value will be the MD5 checksum for the file;
-        $dictionary1.Add("$_.FullName", "$hash")
+        # Print to terminal for debugging purposes
+        Write-Host $_.FullName, $hash
+
+        # The key will be the filename, the value will be the MD5 checksum for the file;
+        $dictionary1.Add($_.FullName, $hash)
+        
+        # This might be simpler, but it will replace the key if it already exists;
+        #$dictionary1[$_.FullName] = $hash
+
       }
     } 
   }
@@ -31,7 +40,16 @@ function calc-chksums($path) {
 # Call the function that calculates the checksums, enter the letter of your first drive; 
 calc-chksums "E:\"
 
-Write-Host "$dictionary1"
+# Using GetEnumerator();
+$dictionary1.GetEnumerator() | ForEach-Object {
+  Write-Output $($_.Key): $($_.Value)
+}
+
+# Using Format-Table;
+#$dictionary1" | Format-Table
+
+# This command does not print the actual contents of the dictionary;
+#Write-Host "$dictionary1"
 
 <#
 # Call the function that calculates the checksums, enter the letter of your second drive;
