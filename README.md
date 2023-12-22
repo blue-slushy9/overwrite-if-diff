@@ -1,1 +1,1 @@
-# overwrite-if-diff
+This is a PS script that will copy items from a source directory to a destination directory, only if the item is not already present in the destination, or if the item is present but is an older version of the file.
